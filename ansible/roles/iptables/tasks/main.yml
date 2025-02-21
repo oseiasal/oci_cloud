@@ -1,0 +1,15 @@
+- name: Configurações de iptables
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - "iptables -P INPUT ACCEPT"
+    - "iptables -P FORWARD ACCEPT"
+    - "iptables -P OUTPUT ACCEPT"
+    - "iptables -F"
+
+- name: Salvar configurações do iptables permanentemente
+  ansible.builtin.command: netfilter-persistent save
+
+- name: Reiniciar serviço iptables (caso necessário)
+  ansible.builtin.service:
+          name: iptables
+          state: restarted

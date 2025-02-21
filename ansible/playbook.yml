@@ -1,0 +1,24 @@
+- name: Configurar Servidor com OpenVPN
+  hosts: webserver
+  become: yes  
+  roles:
+    - iptables
+    # - openvpn_server
+
+- name: Configurar Servidor com N8N
+  hosts: n8nmachine
+  become: yes  
+  roles:
+    - iptables
+    - docker
+    - n8n
+  tasks:
+    - name: Copy docker-compose.yml to the server
+      copy:
+        src: docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+    
+    # - name: Run Docker Compose
+    #   command: docker-compose up -d
+    #   args:
+    #     chdir: /home/ubuntu/

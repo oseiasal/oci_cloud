@@ -1,0 +1,39 @@
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - N8N_HOST=cafen8.ddns.net
+      - N8N_PROTOCOL=https
+      - N8N_PORT=5678
+      - WEBHOOK_TUNNEL_URL=https://cafen8.ddns.net/
+    ports:
+      - "5678:5678"
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - proxy_net
+
+  nginx_proxy:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81" 
+      - "443:443"
+    volumes:
+      - nginx_data:/data
+      - letsencrypt_data:/etc/letsencrypt
+    networks:
+      - proxy_net
+
+volumes:
+  n8n_data:
+  nginx_data:
+  letsencrypt_data:
+
+networks:
+  proxy_net:
+    driver: bridge
