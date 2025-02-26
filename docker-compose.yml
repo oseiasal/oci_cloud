@@ -1,0 +1,70 @@
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - N8N_HOST=cafen8.ddns.net
+      - N8N_PROTOCOL=https
+      - WEBHOOK_TUNNEL_URL=${WEBHOOK_TUNNEL_URL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_METRICS=true
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - proxy_net
+      - monitoring_net
+
+  nginx_proxy:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - nginx_data:/data
+      - letsencrypt_data:/etc/letsencrypt
+    networks:
+      - proxy_net
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: always
+    env_file:
+      - .env    
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - proxy_net
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring_net
+
+volumes:
+  n8n_data:
+  nginx_data:
+  letsencrypt_data:
+  postgres_data:
+
+networks:
+  proxy_net:
+    driver: bridge
+  monitoring_net:
+    driver: bridge

@@ -1,0 +1,133 @@
+- name: Ensure UDP port 51820 is open (UFW)
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+- name: Allow UDP port 51820
+  ufw:
+    rule: allow
+    port: "51820"
+    proto: udp
+
+- name: Install WireGuard and resolvconf
+  apt:
+    name:
+      - wireguard
+      - resolvconf
+    state: present
+    update_cache: yes
+
+- name: Generate private key
+  shell: wg genkey | tee /etc/wireguard/private.key
+  args:
+    creates: /etc/wireguard/private.key
+
+- name: Set permissions for private key
+  file:
+    path: /etc/wireguard/private.key
+    mode: "600"
+
+- name: Generate public key
+  shell: cat /etc/wireguard/private.key | wg pubkey | tee /etc/wireguard/public.key
+  args:
+    creates: /etc/wireguard/public.key
+
+- name: Read private key
+  command: cat /etc/wireguard/private.key
+  register: private_key
+  changed_when: false
+
+- name: Read public key
+  command: cat /etc/wireguard/public.key
+  register: public_key
+  changed_when: false
+
+- name: Configure WireGuard server
+  copy:
+    dest: /etc/wireguard/wg0.conf
+    content: |
+      [Interface]
+      Address = 10.5.5.1/24
+      ListenPort = 51820
+      PrivateKey = {{ private_key.stdout }}
+      
+      [Peer]
+      PublicKey = {{ client1_public_key | trim }}
+      AllowedIPs = 10.5.5.2/32
+      
+      [Peer]
+      PublicKey = {{ client2_public_key | trim }}
+      AllowedIPs = 10.5.5.3/32
+    mode: "600"
+
+- name: Ensure correct permissions for WireGuard config
+  file:
+    path: /etc/wireguard/wg0.conf
+    mode: "600"
+
+- name: Bring up WireGuard interface
+  command: wg-quick up wg0
+  ignore_errors: yes
+  register: wg_up_result
+  failed_when: wg_up_result.rc != 0
+  changed_when: wg_up_result.rc == 0
+
+- name: Ensure WireGuard interface wg0 is down (if it exists)
+  command: /usr/bin/wg-quick down wg0
+  ignore_errors: yes
+  register: wg_down_result
+  changed_when: "'wg0' in wg_down_result.stdout"
+
+- name: Restart WireGuard service
+  systemd:
+    name: wg-quick@wg0
+    state: restarted
+    enabled: yes
+  become: yes
+
+# ============================ #
+# ADICIONANDO CONFIGURAÇÕES PARA ROTEAR TODO O TRÁFEGO #
+# ============================ #
+
+- name: Enable IP forwarding
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^net.ipv4.ip_forward'
+    line: 'net.ipv4.ip_forward=1'
+    state: present
+  notify: Apply sysctl
+
+- name: Apply sysctl settings
+  command: sysctl -p
+  changed_when: false
+
+- name: Configure NAT (Masquerading) with iptables
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: eth0  # Substitua pela interface correta, se necessário
+    jump: MASQUERADE
+  notify: Save iptables rules
+
+- name: Install iptables-persistent to save firewall rules
+  apt:
+    name: iptables-persistent
+    state: present
+    update_cache: yes
+
+- name: Modify UFW to allow forwarding
+  lineinfile:
+    path: /etc/default/ufw
+    regexp: '^DEFAULT_FORWARD_POLICY='
+    line: 'DEFAULT_FORWARD_POLICY="ACCEPT"'
+    state: present
+
+- name: Reload UFW to apply changes
+  command: ufw reload
+  changed_when: false
+
+# ============================ #
+# HANDLERS #
+# ============================ #
+
