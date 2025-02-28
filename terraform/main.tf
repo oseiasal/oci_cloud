@@ -9,6 +9,7 @@ module "instance" {
     compartiment_id = var.compartiment_id
     subnet = module.network.subnet_id
 }
+
 module "createfile" {
     source = "./modules/createfile"
     mainmachine_ip = module.instance.mainmachine_public_ip

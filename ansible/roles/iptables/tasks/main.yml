@@ -13,3 +13,4 @@
   ansible.builtin.service:
           name: iptables
           state: restarted
+  ignore_errors: yes
