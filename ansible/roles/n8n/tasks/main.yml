@@ -1,0 +1,32 @@
+- name: Copy docker-compose.yml to the server
+  copy:
+    src: ../docker-compose.yml
+    dest: /home/ubuntu/docker-compose.yml
+
+- name: Copiar .env
+  copy:
+    src: ../.env
+    dest: /home/ubuntu/.env
+    mode: 0755
+
+- name: Copiar db para o destino
+  copy:
+    src: ../vectordb.sql
+    dest: /home/ubuntu/vectordb.sql
+    mode: 0755
+
+- name: Copiar prometheus.yml para o destino
+  copy:
+    src: ../prometheus.yml
+    dest: /home/ubuntu/prometheus.yml
+    mode: 0755
+
+- name: Derrubar docker compose
+  command: docker compose down 
+  # ignore_errors: yes
+
+- name: Atualizar docker compose
+  command: docker compose pull
+
+- name: Run docker docker-compose.yml
+  command: docker compose -f /home/ubuntu/docker-compose.yml up -d

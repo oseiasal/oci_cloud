@@ -1,64 +1,16 @@
-- name: Configurar Servidor com OpenVPN
-  hosts: webserver
-  become: yes  
-  roles:
-    - iptables
-    # - openvpn_server
-
 - name: Configurar Servidor com N8N
   hosts: n8nmachine
   become: yes  
   roles:
     - iptables
+    - update_noip
     - docker
     - n8n
 
-  tasks:
-    - name: Copy docker-compose.yml to the server
-      copy:
-        src: ../docker-compose.yml
-        dest: /home/ubuntu/docker-compose.yml
-  
-    - name: Copiar db para o destino
-      copy:
-        src: ../vectordb.sql
-        dest: /home/ubuntu/vectordb.sql
-        mode: 0755
-
-    - name: Copiar prometheus.yml para o destino
-      copy:
-        src: ../prometheus.yml
-        dest: /home/ubuntu/prometheus.yml
-        mode: 0755
-
-    - name: Derrubar docker compose
-      command: docker compose -f /home/ubuntu/docker-compose.yml down 
-      ignore_errors: yes
-
-    - name: Run docker docker-compose.yml
-      command: docker compose -f /home/ubuntu/docker-compose.yml up -d
-
-    - name: Instalar dependencias para atualização do noip
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - cron
-        - dnsutils  
-
-    - name: Copiar noip.sh para o destino
-      copy:
-        src: ../noip.sh
-        dest: /usr/local/bin/noip.sh
-        mode: 0755
-
-    - name: Adicionar tarefa no cron
-      cron:
-        name: "noip"
-        minute: "*/30"
-        job: "/usr/local/bin/noip.sh"
-        user: root
-        state: present
-
-
+# - name: Configurar Servidor com OpenVPN
+#   hosts: webserver
+#   become: yes  
+#   roles:
+#     - iptables
+#     # - openvpn_server
 

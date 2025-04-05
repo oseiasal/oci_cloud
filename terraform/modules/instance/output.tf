@@ -1,7 +1,3 @@
-output "n8n_public_ip" {
-  value = oci_core_instance.n8nmachine.public_ip
-}
-
-output "mainmachine_public_ip" {
-  value = oci_core_instance.mainmachine.public_ip
+output "ip_da_maquina" {
+  value = oci_core_instance.instance.public_ip
 }

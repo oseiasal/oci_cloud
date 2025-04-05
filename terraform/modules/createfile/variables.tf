@@ -1,6 +1,7 @@
-variable "mainmachine_ip" {
+
+variable "machine_ip" {
   description = "OCID do seu compartimento"
 }
-variable "n8nmachine_ip" {
+variable "machine_name" {
   description = "OCID do seu compartimento"
 }

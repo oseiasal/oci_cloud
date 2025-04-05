@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: n8nio/n8n
+    image: n8nio/n8n:latest
     restart: always
     env_file:
       - .env
@@ -10,6 +10,8 @@ services:
       - WEBHOOK_TUNNEL_URL=${WEBHOOK_TUNNEL_URL}
       - WEBHOOK_URL=${WEBHOOK_URL}
       - N8N_METRICS=true
+      - N8N_METRICS_INCLUDE_WORKFLOWS=true
+      - N8N_METRICS_EXPORTER=true
     ports:
       - "5678:5678"
     volumes:
@@ -21,6 +23,11 @@ services:
   nginx_proxy:
     image: jc21/nginx-proxy-manager:latest
     restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - INITIAL_ADMIN_EMAIL=${DEFAULT_EMAIL}
+      - INITIAL_ADMIN_PASSWORD=${DEFAULT_PASSWORD}
     ports:
       - "80:80"
       - "81:81"
@@ -57,11 +64,23 @@ services:
     networks:
       - monitoring_net
 
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring_net
+    volumes:
+      - grafana_data:/var/lib/grafana
+
 volumes:
   n8n_data:
   nginx_data:
   letsencrypt_data:
   postgres_data:
+  grafana_data:
 
 networks:
   proxy_net:

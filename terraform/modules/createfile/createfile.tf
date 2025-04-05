@@ -1,15 +1,14 @@
 output "inventory_ini" {
   value = templatefile("${path.module}/inventory.tpl", {
-    webserver_ip       = var.mainmachine_ip
-    n8nmachine_ip      = var.n8nmachine_ip
+    machine_ip      = var.machine_ip
+    # machine_name    = var.machine_name
   })
 }
 
 resource "local_file" "inventory_ini" {
   content  = templatefile("${path.module}/inventory.tpl", {
-    webserver_ip       = var.mainmachine_ip
-    n8nmachine_ip      = var.n8nmachine_ip
+    machine_ip      = var.machine_ip
   })
 
-  filename = "../ansible/inventory.ini"
+  filename = "../../ansible/${var.machine_name}.ini"
 }

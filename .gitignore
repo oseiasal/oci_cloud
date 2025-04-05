@@ -44,3 +44,11 @@ inventory.ini
 *.pem
 .env
 .vscode/settings.json
+
+# SSH Keys
+ansible/scripts/ssh_keys/
+*.pem
+*.pub
+
+!*.pem.pub
+*.ini

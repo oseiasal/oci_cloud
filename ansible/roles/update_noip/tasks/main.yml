@@ -1,0 +1,35 @@
+- name: Atualizar cache dos repositórios
+  apt:
+    update_cache: yes
+
+- name: Instalar dependencias para atualização do noip
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - cron
+    - dnsutils
+    
+- name: Copiar noip.sh para o destino
+  copy:
+    src: ../noip.sh
+    dest: /usr/local/bin/noip.sh
+    mode: 0755
+
+- name: Copiar .env
+  copy:
+    src: ../.env
+    dest: /home/ubuntu/.env
+    mode: 0755
+
+- name: Rodar bash
+  command: /usr/local/bin/noip.sh
+  register: result
+
+- name: Adicionar tarefa no cron
+  cron:
+    name: "noip"
+    minute: "*/30"
+    job: "/usr/local/bin/noip.sh"
+    user: root
+    state: present
