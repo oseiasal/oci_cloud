@@ -40,7 +40,7 @@ resource "oci_core_security_list" "security_list" {
   display_name   = "lista-de-seguranca"
 
   dynamic "ingress_security_rules" {
-    for_each = [22, 80, 81, 443]
+    for_each = var.ports
     content {
       protocol = "6"  # TCP
       source = "0.0.0.0/0" 

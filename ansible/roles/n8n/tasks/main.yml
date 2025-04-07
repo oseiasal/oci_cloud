@@ -3,6 +3,26 @@
     src: ../docker-compose.yml
     dest: /home/ubuntu/docker-compose.yml
 
+- name: Copiar pasta traefik
+  copy:
+    src: ../traefik.yml
+    dest: /home/ubuntu/traefik/traefik.yml
+    mode: 0755
+
+- name: Garante que o diretório /letsencrypt existe
+  file:
+    path: /letsencrypt
+    state: directory
+    mode: '0600'  
+
+
+- name: Copiar acme.json pasta traefik, se a pasta nao existe, criar
+  copy:
+    src: ../acme.json
+    dest: /letsencrypt/acme.json
+    mode: 0600
+
+
 - name: Copiar .env
   copy:
     src: ../.env

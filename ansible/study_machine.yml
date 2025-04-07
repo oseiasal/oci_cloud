@@ -1,0 +1,16 @@
+- name: Configurar Servidor com N8N
+  hosts: n8nmachine
+  become: yes  
+  roles:
+    - iptables
+    - update_noip
+    - docker
+    - n8n
+
+# - name: Configurar Servidor com OpenVPN
+#   hosts: webserver
+#   become: yes  
+#   roles:
+#     - iptables
+#     # - openvpn_server
+
