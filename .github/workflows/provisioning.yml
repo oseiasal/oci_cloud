@@ -1,4 +1,5 @@
 name: 'Terraform Provisioning'
+
 on:
   push:
     branches: [ "master" ]
@@ -7,22 +8,33 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.0.0
-      
-      - name: cd to terraform terraform/n8n_machine
+
+      - name: Set AWS credentials (using GitHub Secrets)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"  # ou a região que você está usando
+        run: echo "AWS credentials set"
+
+      # Entrar no diretório terraform/n8n_machine para inicializar o Terraform
+      - name: Change directory to terraform/n8n_machine
         run: cd terraform/n8n_machine
 
+      # Inicializar o Terraform dentro do diretório 'n8n_machine'
       - name: Terraform Init
         run: terraform init
 
+      # Rodar o Terraform Plan dentro do diretório 'n8n_machine'
       - name: Terraform Plan
         run: terraform plan
-      
-    
+
+      # Passo adicional para aplicar o Terraform, se desejado:
+      # - name: Terraform Apply
+      #   run: terraform apply -auto-approve
