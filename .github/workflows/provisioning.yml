@@ -7,6 +7,9 @@ on:
 
 jobs:
   terraform:
+    concurrency: 
+      group: terraform
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -44,15 +47,17 @@ jobs:
 
       - name: Generate tfvars file
         run: |
-          echo "compartiment_id = \"${{ secrets.OCI_TENANCY_OCID }}\"" >> terraform/n8n_machine/terraform.tfvars
-          echo "fingerprint = \"${{ secrets.OCI_FINGERPRINT }}\"" >> terraform/n8n_machine/terraform.tfvars
-          echo "key_file = \"${{ secrets.OCI_PRIVATE_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars      
-          echo "region = \"sa-saopaulo-1\"" >> terraform/n8n_machine/terraform.tfvars
-          echo "ssh_key = \"${{ secrets.SSH_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars      
-          echo "ssh_public_key = \"${{ secrets.OCI_SSH_PUBLIC_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars
-          echo "tenancy = \"${{ secrets.OCI_TENANCY }}\"" >> terraform/n8n_machine/terraform.tfvars
-          echo "tenancy_ocid = \"${{ secrets.OCI_TENANCY_OCID }}\"" > terraform/n8n_machine/terraform.tfvars
-          echo "user = \"${{ secrets.OCI_USER_OCID }}\"" >> terraform/n8n_machine/terraform.tfvars
+          cat <<EOF > terraform/n8n_machine/terraform.tfvars
+          compartiment_id   = "${COMPARTIMENT_ID}"
+          fingerprint       = "${FINGERPRINT}"
+          key_file          = "oci_api_key.pem"
+          region            = "${REGION}"
+          ssh_key           = "${SSH_KEY}"
+          ssh_public_key    = "${SSH_PUBLIC_KEY}"
+          tenancy           = "${TENANCY}"
+          tenancy_ocid      = "${TENANCY_OCID}"
+          user              = "${USER_OCID}"
+          EOF
  
       - name: Terraform Init        
         run: |
