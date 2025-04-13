@@ -22,7 +22,7 @@ resource "oci_core_instance" "instance" {
 
 
   metadata = {
-    ssh_authorized_keys = file("~/.ssh/aws_terraform.pub")
+    ssh_authorized_keys = file(var.ssh_public_key)
   }
 
   display_name = var.instance_name

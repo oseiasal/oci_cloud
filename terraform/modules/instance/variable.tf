@@ -15,3 +15,7 @@ variable "totalRAM" {
 variable "instance_name" {
   description = "Total RAMS"
 }
+
+variable "ssh_public_key" {
+  description = "Total RAMS"
+}

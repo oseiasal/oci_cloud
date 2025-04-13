@@ -8,6 +8,19 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_DEFAULT_REGION: "us-east-1"  
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        COMPARTIMENT_ID: ${{ secrets.OCI_COMPARTIMENT_ID }}
+        FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+        PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+        REGION: "sa-saopaulo-1"
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+        SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+        TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+        TENANCY: ${{ secrets.OCI_TENANCY }}
+        USER_OCID: ${{ secrets.OCI_USER_OCID }}
     
     steps:
       - name: Checkout code
@@ -17,23 +30,39 @@ jobs:
         uses: hashicorp/setup-terraform@v1
 
       - name: Set AWS credentials (using GitHub Secrets)
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"  # ou a região que você está usando
         run: echo "AWS credentials set"
 
-      # Entrar no diretório terraform/n8n_machine para inicializar o Terraform
-      - name: Change directory to terraform/n8n_machine
-        run: cd terraform/n8n_machine
+      - name: Create OCI private key file
+        run: |
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" > oci_api_key.pem
+          chmod 600 oci_api_key.pem  
 
-      # Inicializar o Terraform dentro do diretório 'n8n_machine'
-      - name: Terraform Init
-        run: terraform init
+      - name: Create OCI private key file
+        run: |
+          echo "${{ secrets.AWS_TERRAFORM_PUB }}" > aws_terraform.pub
+          chmod 600 aws_terraform.pub  
 
-      # Rodar o Terraform Plan dentro do diretório 'n8n_machine'
+      - name: Generate tfvars file
+        run: |
+          echo "compartiment_id = \"${{ secrets.OCI_TENANCY_OCID }}\"" >> terraform/n8n_machine/terraform.tfvars
+          echo "fingerprint = \"${{ secrets.OCI_FINGERPRINT }}\"" >> terraform/n8n_machine/terraform.tfvars
+          echo "key_file = \"${{ secrets.OCI_PRIVATE_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars      
+          echo "region = \"sa-saopaulo-1\"" >> terraform/n8n_machine/terraform.tfvars
+          echo "ssh_key = \"${{ secrets.SSH_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars      
+          echo "ssh_public_key = \"${{ secrets.OCI_SSH_PUBLIC_KEY }}\"" >> terraform/n8n_machine/terraform.tfvars
+          echo "tenancy = \"${{ secrets.OCI_TENANCY }}\"" >> terraform/n8n_machine/terraform.tfvars
+          echo "tenancy_ocid = \"${{ secrets.OCI_TENANCY_OCID }}\"" > terraform/n8n_machine/terraform.tfvars
+          echo "user = \"${{ secrets.OCI_USER_OCID }}\"" >> terraform/n8n_machine/terraform.tfvars
+ 
+      - name: Terraform Init        
+        run: |
+          cd terraform/n8n_machine
+          terraform init
+
       - name: Terraform Plan
-        run: terraform plan
+        run: |
+          cd terraform/n8n_machine
+          terraform plan
 
       # Passo adicional para aplicar o Terraform, se desejado:
       # - name: Terraform Apply

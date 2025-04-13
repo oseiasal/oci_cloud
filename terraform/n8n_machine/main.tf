@@ -5,6 +5,7 @@ module "n8n_machine" {
     totalCPUs = 1
     totalRAM = 6
     instance_name = "N8N Machine"
+    ssh_public_key = var.ssh_key
 }
 
 module "network" {
