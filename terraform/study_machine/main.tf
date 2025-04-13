@@ -1,10 +1,10 @@
-module "n8n_machine" {
+module "study_machine" {
     source = "../modules/instance"
     compartiment_id = var.compartiment_id
     subnet = module.network.subnet_id
     totalCPUs = 1
     totalRAM = 6
-    instance_name = "N8N Machine"
+    instance_name = "Estudos Machine"
 }
 
 module "network" {
@@ -15,6 +15,6 @@ module "network" {
 
 module "createfile" {
     source = "../modules/createfile"
-    machine_name = "n8n_machine"
-    machine_ip = module.n8n_machine.ip_da_maquina
+    machine_name = "study_machine"
+    machine_ip = module.study_machine.ip_da_maquina
 }
