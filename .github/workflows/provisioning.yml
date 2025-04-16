@@ -72,9 +72,12 @@ jobs:
           cd terraform/n8n_machine
           terraform apply -auto-approve
       
-      - name: uses ansible
-        uses: ansible/ansible-runner-action@v1
-        with:
-          playbook: ansible/n8n_machine.yml
-          inventory: ansible/n8n_machine.ini
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook ansible/n8n_machine.yml -i ansible/n8n_machine.ini
       
