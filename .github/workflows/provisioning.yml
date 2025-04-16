@@ -52,9 +52,9 @@ jobs:
           fingerprint       = "$OCI_FINGERPRINT"
           region            = "$OCI_REGION"
           user              = "$OCI_USER"
-          ssh_key           = "$GITHUB_WORKSPACE/aws_terraform.pub"
+          ssh_key           = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform.pub"
           key_file          = "/home/runner/work/oci_cloud/oci_cloud/oci_api_key.pem"
-          ssh_public_key    = "555"
+          ssh_public_key    = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform.pub"
           EOF
           
       - name: Terraform Init        
