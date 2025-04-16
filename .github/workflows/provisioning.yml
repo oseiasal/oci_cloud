@@ -71,3 +71,10 @@ jobs:
         run: |
           cd terraform/n8n_machine
           terraform apply -auto-approve
+      
+      - name: uses ansible
+        uses: ansible/ansible-runner-action@v1
+        with:
+          playbook: ansible/n8n_machine.yml
+          inventory: ansible/n8n_machine.ini
+      
