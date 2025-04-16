@@ -2,7 +2,7 @@ name: 'Terraform Provisioning'
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "*" ]
   workflow_dispatch:
 
 jobs:
@@ -11,20 +11,18 @@ jobs:
       group: terraform
       cancel-in-progress: true
     runs-on: ubuntu-latest
+
     env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_DEFAULT_REGION: "us-east-1"  
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        COMPARTIMENT_ID: ${{ secrets.OCI_COMPARTIMENT_ID }}
-        FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
-        PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
-        REGION: "sa-saopaulo-1"
-        SSH_KEY: ${{ secrets.SSH_KEY }}
-        SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-        TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
-        TENANCY: ${{ secrets.OCI_TENANCY }}
-        USER_OCID: ${{ secrets.OCI_USER_OCID }}
-    
+      AWS_DEFAULT_REGION: "us-east-1"  
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      INSTANCE_SSH_PUBLIC_KEY: ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
+      OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+      OCI_API_API_KEY_PEM: ${{ secrets.OCI_API_API_KEY_PEM }}
+      OCI_REGION: ${{ secrets.OCI_REGION }}
+      OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+      OCI_USER: ${{ secrets.OCI_USER }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,33 +30,33 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Set AWS credentials (using GitHub Secrets)
-        run: echo "AWS credentials set"
 
       - name: Create OCI private key file
         run: |
-          echo "${{ secrets.OCI_PRIVATE_KEY }}" > oci_api_key.pem
-          chmod 600 oci_api_key.pem  
+          cat <<EOF > oci_api_key.pem
+          ${{ secrets.OCI_API_API_KEY_PEM }}
+          EOF
+          chmod 600 oci_api_key.pem
 
-      - name: Create OCI private key file
+      - name: Create SSH public key file
         run: |
-          echo "${{ secrets.AWS_TERRAFORM_PUB }}" > aws_terraform.pub
+          echo "${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}" > aws_terraform.pub
           chmod 600 aws_terraform.pub  
-
+      
       - name: Generate tfvars file
         run: |
           cat <<EOF > terraform/n8n_machine/terraform.tfvars
-          compartiment_id   = "${COMPARTIMENT_ID}"
-          fingerprint       = "${FINGERPRINT}"
-          key_file          = "oci_api_key.pem"
-          region            = "${REGION}"
-          ssh_key           = "${SSH_KEY}"
-          ssh_public_key    = "${SSH_PUBLIC_KEY}"
-          tenancy           = "${TENANCY}"
-          tenancy_ocid      = "${TENANCY_OCID}"
-          user              = "${USER_OCID}"
+          compartiment_id   = "$OCI_TENANCY_OCID"
+          tenancy           = "$OCI_TENANCY_OCID"
+          tenancy_ocid      = "$OCI_TENANCY_OCID"
+          fingerprint       = "$OCI_FINGERPRINT"
+          region            = "$OCI_REGION"
+          user              = "$OCI_USER"
+          ssh_key           = "$GITHUB_WORKSPACE/aws_terraform.pub"
+          key_file          = "/home/runner/work/oci_cloud/oci_cloud/oci_api_key.pem"
+          ssh_public_key    = "555"
           EOF
- 
+          
       - name: Terraform Init        
         run: |
           cd terraform/n8n_machine
@@ -69,6 +67,8 @@ jobs:
           cd terraform/n8n_machine
           terraform plan
 
-      # Passo adicional para aplicar o Terraform, se desejado:
+      # Descomente se quiser aplicar direto
       # - name: Terraform Apply
-      #   run: terraform apply -auto-approve
+      #   run: |
+      #     cd terraform/n8n_machine
+      #     terraform apply -auto-approve
