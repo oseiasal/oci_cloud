@@ -67,8 +67,7 @@ jobs:
           cd terraform/n8n_machine
           terraform plan
 
-      # Descomente se quiser aplicar direto
-      # - name: Terraform Apply
-      #   run: |
-      #     cd terraform/n8n_machine
-      #     terraform apply -auto-approve
+      - name: Terraform Apply
+        run: |
+          cd terraform/n8n_machine
+          terraform apply -auto-approve
