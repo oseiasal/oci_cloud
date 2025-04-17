@@ -40,8 +40,10 @@ jobs:
 
       - name: Create SSH public key file
         run: |
-          echo "${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}" > aws_terraform.pub
-          chmod 600 aws_terraform.pub  
+          cat <<EOF > aws_terraform.pub
+          ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
+          EOF
+          chmod 600 aws_terraform.pub
       
       - name: Generate tfvars file
         run: |
