@@ -40,10 +40,10 @@ jobs:
 
       - name: Create SSH public key file
         run: |
-          cat <<EOF > aws_terraform.pub
+          cat <<EOF > aws_terraform
           ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
           EOF
-          chmod 600 aws_terraform.pub
+          chmod 600 aws_terraform
       
       - name: Generate tfvars file
         run: |
@@ -54,9 +54,9 @@ jobs:
           fingerprint       = "$OCI_FINGERPRINT"
           region            = "$OCI_REGION"
           user              = "$OCI_USER"
-          ssh_key           = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform.pub"
+          ssh_key           = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform"
           key_file          = "/home/runner/work/oci_cloud/oci_cloud/oci_api_key.pem"
-          ssh_public_key    = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform.pub"
+          ssh_public_key    = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform"
           EOF
           
       - name: Terraform Init        
