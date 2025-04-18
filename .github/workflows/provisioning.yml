@@ -118,7 +118,7 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          if [ -z "${{ env.N8N_MACHINE_IP }}" ]; then
+          if [ -z "${{ needs.terraform.outputs.N8N_MACHINE_IP }}" ]; then
             echo "Error: N8N_MACHINE_IP is not set."
             exit 1
           fi
