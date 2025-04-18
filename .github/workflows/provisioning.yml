@@ -1,4 +1,4 @@
-name: 'Terraform Provisioning'
+name: 'Terraform Provisioning and N8N Setup'
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
 
 jobs:
   terraform:
-    concurrency: 
+    concurrency:
       group: terraform
       cancel-in-progress: true
     runs-on: ubuntu-latest
 
     env:
-      AWS_DEFAULT_REGION: "us-east-1"  
+      AWS_DEFAULT_REGION: "us-east-1"
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       INSTANCE_SSH_PUBLIC_KEY: ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
@@ -30,14 +30,6 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
-
-
-      - name: Create .env
-        run: |
-          cat <<EOF > .env
-          ${{ secrets.DOT_ENV}}
-          EOF
-          chmod 600 .env
 
       - name: Create OCI private key file
         run: |
@@ -59,7 +51,7 @@ jobs:
           ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
           EOF
           chmod 600 aws_terraform
-      
+
       - name: Generate tfvars file
         run: |
           cat <<EOF > terraform/n8n_machine/terraform.tfvars
@@ -73,8 +65,8 @@ jobs:
           key_file          = "/home/runner/work/oci_cloud/oci_cloud/oci_api_key.pem"
           ssh_public_key    = "/home/runner/work/oci_cloud/oci_cloud/aws_terraform.pub"
           EOF
-      
-      - name: Terraform Init        
+
+      - name: Terraform Init
         run: |
           cd terraform/n8n_machine
           terraform init
@@ -83,7 +75,7 @@ jobs:
         run: |
           cd terraform/n8n_machine
           terraform plan
-      
+
       - name: Terraform Apply
         run: |
           cd terraform/n8n_machine
@@ -97,34 +89,44 @@ jobs:
           # Captura o IP uma única vez
           RAW_IP=$(terraform output -raw n8n_machine_ip)
           CLEANED_IP=$(echo "$RAW_IP" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)
-          
+
           if [[ -z "$CLEANED_IP" ]]; then
             echo "Error: Unable to extract a valid IP address."
             exit 1
           fi
 
-          # echo "::notice::Extracted IP: $CLEANED_IP"
-          
-          # Save the IP to the environment
-          echo "N8N_MACHINE_IP=$CLEANED_IP" >> "$GITHUB_ENV"
+          # Save the IP as output
+          echo "::set-output name=n8n_machine_ip::$CLEANED_IP"
 
+  ansible:
+    needs: terraform
+    runs-on: ubuntu-latest
 
-      - name: Adicionar chave SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       
-      - name: Testar SSH
+      - name: Create .env
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@$N8N_MACHINE_IP "echo 'SSH OK: Login efetuado com sucesso'"
+          cat <<EOF > .env
+          ${{ secrets.DOT_ENV }}
+          EOF
+          chmod 600 .env
 
-    # Fim apagar
       - name: Install Ansible
         run: |
           sudo apt update
           sudo apt install -y ansible
 
+      - name: Add SSH private key to agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
+
       - name: Run Ansible Playbook
         run: |
           ansible-playbook ansible/n8n_machine.yml -i ansible/n8n_machine.ini
-      
