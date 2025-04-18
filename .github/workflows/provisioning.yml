@@ -98,8 +98,21 @@ jobs:
           # Save the IP as output
           echo "::set-output name=n8n_machine_ip::$CLEANED_IP"
 
-  ansible:
+  check-ssh:
     needs: terraform
+    runs-on: ubuntu-latest
+    steps:  
+      - name: Add SSH private key to agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
+
+  ansible:
+    needs: check-ssh
     runs-on: ubuntu-latest
 
     steps:
@@ -117,15 +130,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ansible
-
-      - name: Add SSH private key to agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
-
-      - name: Test SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
 
       - name: Run Ansible Playbook
         run: |
