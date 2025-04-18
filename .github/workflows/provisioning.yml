@@ -109,7 +109,7 @@ jobs:
       
       - name: Test SSH connection
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@$N8N_MACHINE_IP "echo 'SSH OK: Login efetuado com sucesso'"
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
 
   ansible:
     needs: check-ssh
