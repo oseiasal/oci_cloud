@@ -22,6 +22,7 @@ jobs:
       OCI_REGION: ${{ secrets.OCI_REGION }}
       OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
       OCI_USER: ${{ secrets.OCI_USER }}
+      DOT_ENV: ${{ secrets.DOT_ENV }}
 
     steps:
       - name: Checkout code
@@ -30,6 +31,13 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
+
+      - name: Create .env
+        run: |
+          cat <<EOF > .env
+          ${{ secrets.DOT_ENV}}
+          EOF
+          chmod 600 .env
 
       - name: Create OCI private key file
         run: |
@@ -95,11 +103,10 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::Extracted IP: $CLEANED_IP"
+          # echo "::notice::Extracted IP: $CLEANED_IP"
           
           # Save the IP to the environment
           echo "N8N_MACHINE_IP=$CLEANED_IP" >> "$GITHUB_ENV"
-
 
 
       - name: Adicionar chave SSH
