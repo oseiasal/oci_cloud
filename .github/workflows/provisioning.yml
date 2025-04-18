@@ -97,6 +97,8 @@ jobs:
 
           # Save the IP as output
           echo "n8n_machine_ip=$CLEANED_IP" >> $GITHUB_OUTPUT
+    outputs:
+      n8n_machine_ip: ${{ steps.get_ip.outputs.n8n_machine_ip }}
 
       # - name: Add SSH private key to agent
       #   uses: webfactory/ssh-agent@v0.9.0
