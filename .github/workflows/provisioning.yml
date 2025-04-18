@@ -85,7 +85,7 @@ jobs:
       - name: Obter IP da instância
         id: get_ip
         run: |
-          IP=$(terraform output -raw ip_da_maquina)
+          IP=$(terraform output -raw n8n_machine_ip)
           echo "IP=$IP"
           echo "host_ip=$IP" >> $GITHUB_ENV
 
