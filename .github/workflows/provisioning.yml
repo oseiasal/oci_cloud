@@ -101,27 +101,9 @@ jobs:
     outputs:
       n8n_machine_ip: ${{ steps.get_ip.outputs.n8n_machine_ip }}
 
-  check-ssh:
-    needs: terraform
-    runs-on: ubuntu-latest
-    steps:  
-      - name: Add SSH private key to agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
-
-      - name: Test SSH connection
-        run: |
-          if [ -z "${{ needs.terraform.outputs.n8n_machine_ip }}" ]; then
-            echo "Error: n8n_machine_ip is not set."
-            exit 1
-          fi
-
-          echo "Attempting SSH connection to ${{ env.n8n_machine_ip }}"
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
 
   ansible:
-    needs: check-ssh
+    needs: terraform
     runs-on: ubuntu-latest
 
     steps:
