@@ -82,7 +82,7 @@ jobs:
           terraform apply -auto-approve
 
      # Inicio Apagar
-      - name: Obter IP da instância Terraform
+      - name: Obtain IP of the Terraform instance
         id: get_ip
         run: |
           cd terraform/n8n_machine
@@ -97,7 +97,7 @@ jobs:
       
       - name: Testar SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@$host_ip "echo 'SSH OK: Login efetuado com sucesso'"
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@$N8N_MACHINE_IP "echo 'SSH OK: Login efetuado com sucesso'"
 
     # Fim apagar
       - name: Install Ansible
