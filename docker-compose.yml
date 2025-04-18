@@ -23,6 +23,7 @@ services:
   #   networks:
   #     - proxy_net
 
+
   n8n:
     image: n8nio/n8n:latest
     restart: always
@@ -36,6 +37,9 @@ services:
       - N8N_METRICS=true
       - N8N_METRICS_INCLUDE_WORKFLOWS=true
       - N8N_METRICS_EXPORTER=true
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=oseiasal
+      - N8N_BASIC_AUTH_PASSWORD=${DEFAULT_PASSWORD}
     # labels:
     #   - "traefik.enable=true"
     #   - "traefik.http.routers.n8n.rule=Host(`n8n.squiddev.live`)"
