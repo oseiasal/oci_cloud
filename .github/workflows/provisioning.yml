@@ -98,6 +98,15 @@ jobs:
           # Save the IP as output
           echo "N8N_MACHINE_IP=$CLEANED_IP" >> $GITHUB_ENV
 
+      - name: Add SSH private key to agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+      
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
+          
   check-ssh:
     needs: terraform
     runs-on: ubuntu-latest
