@@ -96,17 +96,17 @@ jobs:
           fi
 
           # Save the IP as output
-          echo "N8N_MACHINE_IP=$CLEANED_IP" >> $GITHUB_ENV
+          echo "N8N_MACHINE_IP=$CLEANED_IP" >> $GITHUB_OUTPUT
 
-      - name: Add SSH private key to agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+      # - name: Add SSH private key to agent
+      #   uses: webfactory/ssh-agent@v0.9.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
       
-      - name: Test SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
-          
+      # - name: Test SSH connection
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
+
   check-ssh:
     needs: terraform
     runs-on: ubuntu-latest
@@ -115,10 +115,16 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
-      
+
       - name: Test SSH connection
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
+          if [ -z "${{ env.N8N_MACHINE_IP }}" ]; then
+            echo "Error: N8N_MACHINE_IP is not set."
+            exit 1
+          fi
+
+          echo "Attempting SSH connection to ${{ env.N8N_MACHINE_IP }}"
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.N8N_MACHINE_IP }} "echo 'SSH OK: Login efetuado com sucesso'"
 
   ansible:
     needs: check-ssh
