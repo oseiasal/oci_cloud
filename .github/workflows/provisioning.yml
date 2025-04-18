@@ -96,7 +96,7 @@ jobs:
           fi
 
           # Save the IP as output
-          echo "n8n_machine_ip=$CLEANED_IP" >> $GITHUB_OUTPUT
+          echo "n8n_machine_ip=$CLEANED_IP" >> $GITHUB_ENV
 
   check-ssh:
     needs: terraform
@@ -109,7 +109,7 @@ jobs:
       
       - name: Test SSH connection
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
 
   ansible:
     needs: check-ssh
