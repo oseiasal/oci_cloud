@@ -87,6 +87,10 @@ jobs:
         run: |
           cd terraform/n8n_machine
           IP=$(terraform output -raw n8n_machine_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
+          if [[ -z "$IP" ]]; then
+            echo "Error: Unable to extract IP address."
+            exit 1
+          fi
           echo "IP=$IP"
           echo "N8N_MACHINE_IP=$IP" >> $GITHUB_ENV
 
