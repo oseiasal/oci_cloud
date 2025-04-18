@@ -96,7 +96,7 @@ jobs:
           fi
 
           # Save the IP as output
-          echo "::set-output name=n8n_machine_ip::$CLEANED_IP"
+          echo "n8n_machine_ip=$CLEANED_IP" >> $GITHUB_OUTPUT
 
   check-ssh:
     needs: terraform
