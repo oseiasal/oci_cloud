@@ -5,24 +5,24 @@ on:
     branches: [ "*" ]
   workflow_dispatch:
 
+env:
+  AWS_DEFAULT_REGION: "us-east-1"
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  INSTANCE_SSH_PUBLIC_KEY: ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
+  OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+  OCI_API_API_KEY_PEM: ${{ secrets.OCI_API_API_KEY_PEM }}
+  OCI_REGION: ${{ secrets.OCI_REGION }}
+  OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+  OCI_USER: ${{ secrets.OCI_USER }}
+  DOT_ENV: ${{ secrets.DOT_ENV }}
+
 jobs:
   terraform:
     concurrency:
       group: terraform
       cancel-in-progress: true
     runs-on: ubuntu-latest
-
-    env:
-      AWS_DEFAULT_REGION: "us-east-1"
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      INSTANCE_SSH_PUBLIC_KEY: ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
-      OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
-      OCI_API_API_KEY_PEM: ${{ secrets.OCI_API_API_KEY_PEM }}
-      OCI_REGION: ${{ secrets.OCI_REGION }}
-      OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
-      OCI_USER: ${{ secrets.OCI_USER }}
-      DOT_ENV: ${{ secrets.DOT_ENV }}
 
     steps:
       - name: Checkout code
@@ -31,13 +31,6 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Create OCI private key file
-        run: |
-          cat <<EOF > oci_api_key.pem
-          ${{ secrets.OCI_API_API_KEY_PEM }}
-          EOF
-          chmod 600 oci_api_key.pem
-
       - name: Create SSH public key file
         run: |
           cat <<EOF > aws_terraform.pub
@@ -45,12 +38,12 @@ jobs:
           EOF
           chmod 600 aws_terraform.pub
 
-      - name: Create SSH private key file
+      - name: Create OCI private key file
         run: |
-          cat <<EOF > aws_terraform
-          ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+          cat <<EOF > oci_api_key.pem
+          ${{ secrets.OCI_API_API_KEY_PEM }}
           EOF
-          chmod 600 aws_terraform
+          chmod 600 oci_api_key.pem
 
       - name: Generate tfvars file
         run: |
@@ -97,17 +90,16 @@ jobs:
 
           # Save the IP as output
           echo "n8n_machine_ip=$CLEANED_IP" >> $GITHUB_OUTPUT
+
+      - name: Generate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: ansible/n8n_machine.ini 
+          retention-days: 1
+          name: n8n_machine.ini
+
     outputs:
       n8n_machine_ip: ${{ steps.get_ip.outputs.n8n_machine_ip }}
-
-      # - name: Add SSH private key to agent
-      #   uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
-      
-      # - name: Test SSH connection
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ env.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
 
   check-ssh:
     needs: terraform
@@ -135,19 +127,47 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Add SSH private key to agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+
+      - name: Test SSH connection
+        run: |
+          if [ -z "${{ needs.terraform.outputs.n8n_machine_ip }}" ]; then
+            echo "Error: n8n_machine_ip is not set."
+            exit 1
+          fi
+
+          echo "Attempting SSH connection to ${{ env.n8n_machine_ip }}"
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ubuntu@${{ needs.terraform.outputs.n8n_machine_ip }} "echo 'SSH OK: Login efetuado com sucesso'"
       
+      - name: Create SSH private key file
+        run: |
+          cat <<EOF > aws_terraform
+          ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
+          EOF
+          chmod 600 aws_terraform
+
       - name: Create .env
         run: |
           cat <<EOF > .env
           ${{ secrets.DOT_ENV }}
           EOF
           chmod 600 .env
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: n8n_machine.ini  
+          path: ansible/ 
 
       - name: Install Ansible
         run: |
           sudo apt update
           sudo apt install -y ansible
-
+      
       - name: Run Ansible Playbook
         run: |
           ansible-playbook ansible/n8n_machine.yml -i ansible/n8n_machine.ini

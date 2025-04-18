@@ -3,6 +3,9 @@
     src: ../docker-compose.yml
     dest: /home/ubuntu/docker-compose.yml
 
+- name: Create traefik source
+  command: mkdir -p /home/ubuntu/traefik
+
 - name: Copiar pasta traefik
   copy:
     src: ../traefik.yml
