@@ -1,27 +1,27 @@
 services:
-  traefik:
-    image: traefik:v2.11
-    container_name: traefik
-    restart: always
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"  # Remova em produção
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${DEFAULT_EMAIL}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080" # Dashboard
-    volumes:
-      - traefik_letsencrypt:/letsencrypt
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    networks:
-      - proxy_net
+  # traefik:
+  #   image: traefik:v2.11
+  #   container_name: traefik
+  #   restart: always
+  #   command:
+  #     - "--api.dashboard=true"
+  #     - "--api.insecure=true"  # Remova em produção
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--entrypoints.web.address=:80"
+  #     - "--entrypoints.websecure.address=:443"
+  #     - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+  #     - "--certificatesresolvers.myresolver.acme.email=${DEFAULT_EMAIL}"
+  #     - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "8080:8080" # Dashboard
+  #   volumes:
+  #     - traefik_letsencrypt:/letsencrypt
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #   networks:
+  #     - proxy_net
 
   n8n:
     image: n8nio/n8n:latest
@@ -36,13 +36,13 @@ services:
       - N8N_METRICS=true
       - N8N_METRICS_INCLUDE_WORKFLOWS=true
       - N8N_METRICS_EXPORTER=true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`n8n.squiddev.live`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls=true"
-      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
-      - "traefik.http.routers.n8n.tls.certresolver=myresolver"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.n8n.rule=Host(`n8n.squiddev.live`)"
+    #   - "traefik.http.routers.n8n.entrypoints=websecure"
+    #   - "traefik.http.routers.n8n.tls=true"
+    #   - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+    #   - "traefik.http.routers.n8n.tls.certresolver=myresolver"
 
     ports:
       - "5678:5678"
@@ -52,23 +52,23 @@ services:
       - proxy_net
       - monitoring_net
 
-  # nginx_proxy:
-  #   image: jc21/nginx-proxy-manager:latest
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - INITIAL_ADMIN_EMAIL=${DEFAULT_EMAIL}
-  #     - INITIAL_ADMIN_PASSWORD=${DEFAULT_PASSWORD}
-  #   ports:
-  #     - "80:80"
-  #     - "81:81"
-  #     - "443:443"
-  #   volumes:
-  #     - nginx_data:/data
-  #     - letsencrypt_data:/etc/letsencrypt
-  #   networks:
-  #     - proxy_net
+  nginx_proxy:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - INITIAL_ADMIN_EMAIL=${DEFAULT_EMAIL}
+      - INITIAL_ADMIN_PASSWORD=${DEFAULT_PASSWORD}
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - nginx_data:/data
+      - letsencrypt_data:/etc/letsencrypt
+    networks:
+      - proxy_net
 
   postgres:
     image: pgvector/pgvector:pg17

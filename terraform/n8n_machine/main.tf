@@ -12,7 +12,7 @@ module "network" {
     source = "../modules/vcn"
     compartiment_id = var.compartiment_id
     tenancy_ocid = var.compartiment_id
-    ports = [22, 80, 443]
+    ports = [22, 80, 81, 443]
 }
 
 module "createfile" {
