@@ -86,7 +86,7 @@ jobs:
         id: get_ip
         run: |
           cd terraform/n8n_machine
-          IP=$(terraform output -raw n8n_machine_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
+          IP=$(terraform output -raw n8n_machine_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
           echo "IP=$IP"
           echo "N8N_MACHINE_IP=$IP" >> $GITHUB_ENV
 
