@@ -20,3 +20,7 @@ module "createfile" {
     machine_name = "n8n_machine"
     machine_ip = module.n8n_machine.ip_da_maquina
 }
+
+output "n8n_machine_ip" {
+    value = module.n8n_machine.ip_da_maquina
+}
