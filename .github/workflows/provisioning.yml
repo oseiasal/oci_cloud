@@ -81,18 +81,26 @@ jobs:
           cd terraform/n8n_machine
           terraform apply -auto-approve
 
-     # Inicio Apagar
       - name: Obtain IP of the Terraform instance
         id: get_ip
         run: |
           cd terraform/n8n_machine
           IP=$(terraform output -raw n8n_machine_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
+          
           if [[ -z "$IP" ]]; then
             echo "Error: Unable to extract IP address."
             exit 1
           fi
-          echo "IP=$IP"
-          echo "N8N_MACHINE_IP=$IP" >> $GITHUB_ENV
+
+          # ⚠️ Evita qualquer caractere inesperado
+          CLEANED_IP=$(echo "$IP" | tr -d '\r' | tr -d '\n')
+          
+          # ✅ Só imprime o IP no console para debug
+          echo "::notice::IP extraído: $CLEANED_IP"
+
+          # ✅ Salva como variável de ambiente sem vazar
+          echo "N8N_MACHINE_IP=$CLEANED_IP" >> "$GITHUB_ENV"
+
 
       - name: Adicionar chave SSH
         uses: webfactory/ssh-agent@v0.9.0
