@@ -6,6 +6,11 @@ on:
     #   - environments/**
     branches: 
       - '*'
+  pull_request:
+    # paths:
+    #   - environments/**
+    branches: 
+      - '*'
   workflow_dispatch:
     inputs:
       action:
