@@ -1,7 +1,0 @@
-- name: Configurar servidor
-  hosts: study
-  become: yes  
-  roles:
-    - iptables
-
-
