@@ -39,6 +39,3 @@ echo "🚀 Subindo os containers novamente..."
 docker compose up -d
 
 echo "✅ Backup feito e containers restaurados!"
-
-9YbdAGuIXXxXdM4sh4tKBX5O8zBmyowZbHEGMs0i
-AKIAWDKRTR7IXXMET24S
