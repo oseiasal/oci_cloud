@@ -19,6 +19,7 @@ module "createfile" {
     source = "../../../modules/createfile"
     machine_name = "n8n_machine"
     machine_ip = module.n8n_machine.ip_da_maquina
+    output_path  = "${path.module}/../ansible"
 }
 
 output "n8n_machine_ip" {
