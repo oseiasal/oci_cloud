@@ -290,7 +290,7 @@ jobs:
           cat <<EOF > environments/n8n_machine/ansible/files/.env
           ${{ secrets.DOT_ENV }}
           EOF
-          chmod 600 environments/n8n_machine/ansible/.env
+          chmod 600 environments/n8n_machine/ansible/files/.env
       
       - name: Download artifact
         uses: actions/download-artifact@v4
