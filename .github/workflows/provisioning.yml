@@ -45,6 +45,34 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
+        
+      - name: Create SSH public key file
+        run: |
+          cat <<EOF > environments/n8n_machine/terraform/aws_terraform.pub
+          ${{ secrets.INSTANCE_SSH_PUBLIC_KEY }}
+          EOF
+          chmod 600 environments/n8n_machine/terraform/aws_terraform.pub
+
+      - name: Create OCI private key file
+        run: |
+          cat <<EOF > environments/n8n_machine/terraform/oci_api_key.pem
+          ${{ secrets.OCI_API_API_KEY_PEM }}
+          EOF
+          chmod 600 environments/n8n_machine/terraform/oci_api_key.pem
+
+      - name: Generate tfvars file
+        run: |
+          cat <<EOF > environments/n8n_machine/terraform/terraform.tfvars
+          compartiment_id   = "$OCI_TENANCY_OCID"
+          tenancy           = "$OCI_TENANCY_OCID"
+          tenancy_ocid      = "$OCI_TENANCY_OCID"
+          fingerprint       = "$OCI_FINGERPRINT"
+          region            = "$OCI_REGION"
+          user              = "$OCI_USER"
+          ssh_key           = "/home/runner/work/oci_cloud/oci_cloud/environments/n8n_machine/terraform/aws_terraform"
+          key_file          = "/home/runner/work/oci_cloud/oci_cloud/environments/n8n_machine/terraform/oci_api_key.pem"
+          ssh_public_key    = "/home/runner/work/oci_cloud/oci_cloud/environments/n8n_machine/terraform/aws_terraform.pub"
+          EOF
 
       - name: Terraform Init
         run: |
