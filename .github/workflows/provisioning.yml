@@ -2,13 +2,13 @@ name: 'Terraform Provisioning and N8N Setup'
 
 on:
   push:
-    # paths:
-    #   - environments/**
+    paths:
+      - environments/**
     branches: 
       - '*'
   pull_request:
-    # paths:
-    #   - environments/**
+    paths:
+      - environments/**
     branches: 
       - '*'
   workflow_dispatch:
