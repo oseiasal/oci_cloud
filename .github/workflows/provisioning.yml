@@ -306,9 +306,11 @@ jobs:
       - name: Run Ansible Playbook and update docker-compose
         if: github.event.inputs.action == 'update'
         run: |
-          ansible-playbook environments/n8n_machine/ansible/n8n_machine.yml --start-at-task="Derrubar docker compose"
+          cd environments/n8n_machine/ansible
+          ansible-playbook n8n_machine.yml --start-at-task="Derrubar docker compose"
 
       - name: Run Ansible Playbook
         if: github.event.inputs.action != 'update'
         run: |
-          ansible-playbook environments/n8n_machine/ansible/n8n_machine.yml
+          cd environments/n8n_machine/ansible
+          ansible-playbook n8n_machine.yml
