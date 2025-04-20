@@ -247,7 +247,7 @@ jobs:
       - name: Generate artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ansible/n8n_machine.ini 
+          path: environments/n8n_machine/ansible/n8n_machine.ini 
           retention-days: 1
           name: n8n_machine.ini
 
@@ -280,23 +280,23 @@ jobs:
       
       - name: Create SSH private key file
         run: |
-          cat <<EOF > aws_terraform
+          cat <<EOF > environments/n8n_machine/ansible/aws_terraform
           ${{ secrets.INSTANCE_SSH_PRIVATE_KEY }}
           EOF
-          chmod 600 aws_terraform
+          chmod 600 environments/n8n_machine/ansible/aws_terraform
 
       - name: Create .env
         run: |
-          cat <<EOF > .env
+          cat <<EOF > environments/n8n_machine/ansible/files/.env
           ${{ secrets.DOT_ENV }}
           EOF
-          chmod 600 .env
+          chmod 600 environments/n8n_machine/ansible/.env
       
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: n8n_machine.ini  
-          path: ansible/ 
+          path: environments/n8n_machine/ansible/ 
 
       - name: Install Ansible
         run: |
@@ -306,9 +306,9 @@ jobs:
       - name: Run Ansible Playbook and update docker-compose
         if: github.event.inputs.action == 'update'
         run: |
-          ansible-playbook ansible/n8n_machine.yml -i ansible/n8n_machine.ini --start-at-task="Derrubar docker compose"
+          ansible-playbook environments/n8n_machine/ansible/n8n_machine.yml --start-at-task="Derrubar docker compose"
 
       - name: Run Ansible Playbook
         if: github.event.inputs.action != 'update'
         run: |
-          ansible-playbook ansible/n8n_machine.yml -i ansible/n8n_machine.ini
+          ansible-playbook environments/n8n_machine/ansible/n8n_machine.yml -i ansible/n8n_machine.ini
