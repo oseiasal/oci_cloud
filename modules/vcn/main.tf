@@ -1,7 +1,7 @@
 resource "oci_core_vcn" "vcn" {
   compartment_id = var.compartiment_id
   cidr_block     = "10.0.0.0/16"
-  display_name   = "tf-vcn"
+  display_name   = var.network_name
   dns_label      = "internal"
 }
 
@@ -57,3 +57,10 @@ resource "oci_core_security_list" "security_list" {
   }
 }
 
+
+variable "network_name" {
+  description = "Nome da rede"
+  type        = string
+  default     = "tf-vcn"
+  
+}
